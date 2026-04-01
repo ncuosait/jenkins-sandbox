@@ -1,4 +1,4 @@
-# Jenkins CI/CD Sandbox: OSA 官網系統自動化遷移實驗室
+# Jenkins CI/CD Sandbox: OSA 官網系統自動化遷移 lab
 
 ## 專案簡介
 
