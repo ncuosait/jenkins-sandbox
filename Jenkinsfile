@@ -48,18 +48,14 @@ pipeline {
                 sleep 5
                 
                 script {
-                    // 將 localhost 改為 172.17.0.1 (Docker 宿主機閘道)
-                    def websiteStatus = sh(script: "curl -s http://172.17.0.1:${DEPLOY_PORT}/api/health", returnStatus: true)
+                    // --connect-timeout 5: 避免無限期等待
+                    def websiteStatus = sh(script: "curl -s --connect-timeout 5 http://172.17.0.1:${DEPLOY_PORT}/api/health", returnStatus: true)
                     
                     if (websiteStatus == 0) {
                         echo "✅ 前台 API 連線正常"
                     } else {
-                        // 如果失敗，輸出目前的網路資訊方便除錯
-                        sh "ip route show"
-                        error "❌ 前台 API 連線失敗！"
+                        error "❌ 前台 API 連線失敗或超時！"
                     }
-
-                    // 同樣將這裡的 localhost 改為 172.17.0.1
                     sh "curl -i http://172.17.0.1:${DEPLOY_PORT}/api/health"
                 }
             }
