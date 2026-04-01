@@ -41,12 +41,26 @@ pipeline {
                 sh "docker-compose -p ${PROJECT_NAME} up -d --remove-orphans"
             }
         }
-        stage('Step 4: 自動化健康檢查') {
+        stage('Step 4: 自動化健康檢查 (SRE 核心技能)') {
             steps {
-                echo "--- 等待服務啟動 ---"
+                echo "--- 等待服務啟動並進行 API 驗證 ---"
+                // 稍等 5 秒讓 FastAPI 暖機
                 sleep 5
+                
                 script {
-                    sh "curl -i http://localhost:${DEPLOY_PORT}/api/health"
+                    // 將 localhost 改為 172.17.0.1 (Docker 宿主機閘道)
+                    def websiteStatus = sh(script: "curl -s http://172.17.0.1:${DEPLOY_PORT}/api/health", returnStatus: true)
+                    
+                    if (websiteStatus == 0) {
+                        echo "✅ 前台 API 連線正常"
+                    } else {
+                        // 如果失敗，輸出目前的網路資訊方便除錯
+                        sh "ip route show"
+                        error "❌ 前台 API 連線失敗！"
+                    }
+
+                    // 同樣將這裡的 localhost 改為 172.17.0.1
+                    sh "curl -i http://172.17.0.1:${DEPLOY_PORT}/api/health"
                 }
             }
         }
