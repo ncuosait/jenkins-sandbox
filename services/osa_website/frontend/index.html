@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="zh-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Jenkins Sandbox - 前台</title>
+  </head>
+  <body>
+    <h1>這是影子專案：前台系統</h1>
+    <div id="status">正在從後端獲取數據...</div>
+    <script>
+      // 模擬 Vue 3 呼叫後端 API
+      fetch("/api/data")
+        .then((response) => response.json())
+        .then((data) => {
+          document.getElementById("status").innerText =
+            "連線成功！獲得標籤：" + data.items.join(", ");
+        })
+        .catch((err) => {
+          document.getElementById("status").innerText = "後端連線失敗。";
+        });
+    </script>
+  </body>
+</html>

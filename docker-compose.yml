@@ -1,0 +1,48 @@
+version: "3.8"
+
+services:
+  # --- 前台系統 (Website) ---
+  website-backend:
+    build: ./services/osa-website/backend
+    container_name: osa-website-be
+    networks: [osa-net]
+
+  website-frontend:
+    build: ./services/osa-website/frontend
+    container_name: osa-website-fe
+    networks: [osa-net]
+
+  # --- 後台系統 (Admin) ---
+  admin-backend:
+    build: ./services/osa-admin/backend
+    container_name: osa-admin-be
+    networks: [osa-net]
+
+  admin-frontend:
+    build: ./services/osa-admin/frontend
+    container_name: osa-admin-fe
+    networks: [osa-net]
+
+  # --- 爬蟲服務 ---
+  crawler:
+    image: python:3.9-slim
+    container_name: osa-crawler
+    command: python -c "import time; print('Crawler running...'); time.sleep(3600)"
+    networks: [osa-net]
+
+  # --- 反向代理 (Nginx) ---
+  nginx-proxy:
+    image: nginx:alpine
+    container_name: osa-nginx-proxy
+    ports:
+      - "8081:80"
+    volumes:
+      - ./infra/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - website-frontend
+      - admin-frontend
+    networks: [osa-net]
+
+networks:
+  osa-net:
+    driver: bridge
