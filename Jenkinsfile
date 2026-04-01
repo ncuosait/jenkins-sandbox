@@ -3,7 +3,7 @@ pipeline {
     agent any
 
     environment {
-        // 定義專案名稱，用於 docker-compose 的 project name (-p)
+        // 定義專案名稱，用於 docker compose 的 project name (-p)
         PROJECT_NAME = "osa-shadow-system"
         // 模擬部署的連接埠（剛才 nginx 配置的 8081）
         DEPLOY_PORT = "8081"
@@ -14,8 +14,9 @@ pipeline {
             steps {
                 echo "--- 正在初始化部署任務 ---"
                 sh "docker version"
-                sh "docker-compose version"
-                // 顯示當前工作目錄，確認代碼已拉取
+                // 修正：新版 Docker 使用 docker compose 指令
+                sh "docker compose version"
+                // 顯示當前工作目錄，確認代碼已拉取與資料夾路徑
                 sh "ls -R"
             }
         }
@@ -26,20 +27,22 @@ pipeline {
                 stage('Build Website') {
                     steps {
                         echo "正在建置前台系統..."
-                        // 僅構建與前台相關的服務
-                        sh "docker-compose build website-backend website-frontend"
+                        // 修正：改用 docker compose
+                        sh "docker compose build website-backend website-frontend"
                     }
                 }
                 stage('Build Admin') {
                     steps {
                         echo "正在建置後台系統..."
-                        sh "docker-compose build admin-backend admin-frontend"
+                        // 修正：改用 docker compose
+                        sh "docker compose build admin-backend admin-frontend"
                     }
                 }
                 stage('Build Crawler') {
                     steps {
                         echo "正在建置爬蟲服務..."
-                        sh "docker-compose build crawler"
+                        // 修正：改用 docker compose
+                        sh "docker compose build crawler"
                     }
                 }
             }
@@ -48,8 +51,8 @@ pipeline {
         stage('Step 3: 部署至影子環境') {
             steps {
                 echo "--- 正在啟動容器服務 ---"
-                // -d 背景執行, --remove-orphans 清理不在 compose 裡的舊容器
-                sh "docker-compose -p ${PROJECT_NAME} up -d --remove-orphans"
+                // 修正：改用 docker compose
+                sh "docker compose -p ${PROJECT_NAME} up -d --remove-orphans"
             }
         }
 
@@ -68,8 +71,7 @@ pipeline {
                         error "❌ 前台 API 連線失敗！"
                     }
 
-                    // 檢查後台 API (我們之前改過 Nginx 轉發，假設路徑是 /api/v1/health)
-                    // 這裡的 curl 測試路徑要跟你的 nginx.conf 對應
+                    // 檢查 API 響應內容
                     sh "curl -i http://localhost:${DEPLOY_PORT}/api/health"
                 }
             }
